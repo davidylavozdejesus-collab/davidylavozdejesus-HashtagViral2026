@@ -935,7 +935,14 @@
         
         if (platform === 'youtube') {
           const allYTTags = [...data.generales, ...data.tematicos, ...data.personalizados];
-          copyText = allYTTags.join(',');
+          copyText = allYTTags.map(t => t.replace('#', '')).join(',');
+        } else if (platform === 'youtube_hashtags') {
+          const ytHashtags = [
+            ...data.generales.slice(0, 3),
+            ...data.tematicos.slice(0, 4),
+            ...data.personalizados.slice(0, 3)
+          ];
+          copyText = ytHashtags.join(' ');
         } else {
           const g = data.generales.join(' ');
           const t = data.tematicos.join(' ');
@@ -1374,24 +1381,84 @@
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                        <strong>Requisito especial:</strong> Visualmente sin comas, pero al copiar se unirá mediante comas para el cargador de tags de YouTube Studio.
+                        Visualización clasificada por categoría y casilla de texto unificada lista para copiar y pegar en YouTube Studio.
                       </p>
-                      <div className="p-4 rounded-2xl bg-cyber-black/60 border border-white/5 min-h-[160px] max-h-[220px] overflow-y-auto">
-                        <div className="flex flex-wrap gap-1.5">
-                          {[...results.youtube.generales, ...results.youtube.tematicos, ...results.youtube.personalizados].map((tag, idx) => (
-                            <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 font-medium">{tag}</span>
-                          ))}
+                      
+                      {/* Categorías clasificadas */}
+                      <div className="p-4 rounded-2xl bg-cyber-black/60 border border-white/5 space-y-4 max-h-[220px] overflow-y-auto mb-4">
+                        <div>
+                          <h4 className="text-[10px] text-red-400 font-bold uppercase tracking-wider mb-1">Generales</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {results.youtube.generales.map((tag, idx) => (
+                              <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 font-medium">{tag.replace('#', '')}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] text-cyber-purple font-bold uppercase tracking-wider mb-1">Temáticos</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {results.youtube.tematicos.map((tag, idx) => (
+                              <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-cyber-purple/10 border border-cyber-purple/20 text-cyber-purple font-medium">{tag.replace('#', '')}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] text-cyber-blue font-bold uppercase tracking-wider mb-1">Personalizados</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {results.youtube.personalizados.map((tag, idx) => (
+                              <span key={idx} className="text-xs px-2.5 py-1 rounded-md bg-cyber-blue/10 border border-cyber-blue/20 text-cyber-blue font-medium">{tag.replace('#', '')}</span>
+                            ))}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Casilla unificada de 30 etiquetas para Studio */}
+                      <div className="space-y-1.5 mb-4">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">📋 30 Etiquetas para YouTube Studio (sin #, separadas por comas)</span>
+                        <textarea
+                          readOnly
+                          value={[...results.youtube.generales, ...results.youtube.tematicos, ...results.youtube.personalizados].map(t => t.replace('#','')).join(',')}
+                          className="w-full p-2.5 rounded-xl bg-cyber-black/80 border border-red-500/20 text-xs text-slate-300 font-mono focus:outline-none focus:border-red-500/40 resize-none h-16 transition-all duration-300"
+                          onClick={(e) => { e.target.select(); playClickSound(); }}
+                          placeholder="Etiquetas sin # separadas por comas"
+                        />
+                      </div>
+
+                      {/* Casilla de 10 hashtags para la descripción */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">🔖 10 Hashtags para la Descripción (con #)</span>
+                        <textarea
+                          readOnly
+                          value={[
+                            ...results.youtube.generales.slice(0, 3),
+                            ...results.youtube.tematicos.slice(0, 4),
+                            ...results.youtube.personalizados.slice(0, 3)
+                          ].join(' ')}
+                          className="w-full p-2.5 rounded-xl bg-cyber-black/80 border border-red-400/20 text-xs text-slate-300 font-mono focus:outline-none focus:border-red-400/40 resize-none h-12 transition-all duration-300"
+                          onClick={(e) => { e.target.select(); playClickSound(); }}
+                          placeholder="Hashtags para descripción"
+                        />
+                      </div>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                      <span className="text-[10px] text-red-400 font-semibold tracking-wider uppercase">Listo para Studio</span>
-                      <button
-                        onClick={() => handleCopy('youtube', results.youtube)}
-                        className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${copiedId === 'youtube' ? 'bg-green-500 text-white' : 'bg-red-500 text-white hover:bg-red-600'}`}
-                      >
-                        {copiedId === 'youtube' ? <span>¡Copiado!</span> : <span>Copiar con Comas</span>}
-                      </button>
+                    <div className="mt-6 pt-4 border-t border-white/5 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-red-400 font-semibold tracking-wider uppercase">YouTube Studio</span>
+                        <button
+                          onClick={() => handleCopy('youtube', results.youtube)}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${copiedId === 'youtube' ? 'bg-green-500 text-white' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                        >
+                          {copiedId === 'youtube' ? <span>¡Copiado!</span> : <span>📋 Copiar 30 Etiquetas</span>}
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-orange-400 font-semibold tracking-wider uppercase">Descripción</span>
+                        <button
+                          onClick={() => handleCopy('youtube_hashtags', results.youtube)}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${copiedId === 'youtube_hashtags' ? 'bg-green-500 text-white' : 'bg-orange-500 text-white hover:bg-orange-600'}`}
+                        >
+                          {copiedId === 'youtube_hashtags' ? <span>¡Copiado!</span> : <span>🔖 Copiar 10 Hashtags</span>}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
